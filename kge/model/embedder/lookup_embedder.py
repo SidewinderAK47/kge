@@ -64,8 +64,9 @@ class LookupEmbedder(KgeEmbedder):
                             )
                         )
 
+            job.pre_run_hooks.append(normalize_embeddings)
             if job.config.get("job.type") == "train":
-                job.pre_batch_hooks.append(normalize_embeddings)
+                job.post_batch_hooks.append(normalize_embeddings)
 
     def embed(self, indexes: Tensor) -> Tensor:
         return self._postprocess(self._embeddings(indexes.long()))
