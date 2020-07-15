@@ -132,7 +132,7 @@ class TrainingJob(Job):
             # perhaps TODO: try class with specified name -> extensibility
             raise ValueError("train.type")
 
-    def _run(self, job_trace : Dict[str, Any]) -> Dict[str, Any]:
+    def _run(self, run_trace_fn : Callable) -> Any:
         """Start/resume the training job and run to completion."""
         self.config.log("Starting training...")
         checkpoint_every = self.config.get("train.checkpoint.every")
@@ -243,9 +243,7 @@ class TrainingJob(Job):
                                 self.config.checkpoint_file(delete_checkpoint_epoch)
                             )
                         )
-
-        job_trace["event"] = "train_completed"
-        return job_trace
+        run_trace_fn({"event": "train_completed"})
 
     def save(self, filename) -> None:
         """Save current state to specified file"""

@@ -1,6 +1,6 @@
 import math
 import time
-from typing import Dict, Any
+from typing import Dict, Any, Callable
 
 import torch
 import kge.job
@@ -78,7 +78,7 @@ class EntityRankingJob(EvaluationJob):
         return batch, label_coords, test_label_coords
 
     @torch.no_grad()
-    def _run(self, job_trace : Dict[str, Any]) -> Dict[str, Any]:
+    def _run(self, run_trace_fn : Callable) -> Any:
 
         was_training = self.model.training
         self.model.eval()
@@ -390,8 +390,7 @@ class EntityRankingJob(EvaluationJob):
 
         # compute trace
 
-        job_trace = dict(
-            **job_trace,
+        run_trace_fn(dict(
             echo=True,
             echo_prefix="  ",
             log=True,
@@ -403,23 +402,24 @@ class EntityRankingJob(EvaluationJob):
             epoch_time=epoch_time,
             event="eval_completed",
             **metrics,
+            )
         )
 
         # if validation metric is not present, try to compute it
         metric_name = self.config.get("valid.metric")
-        if metric_name not in job_trace:
-            job_trace[metric_name] = eval(
+        if metric_name not in metrics:
+            metric_entry = {metric_name: eval(
                 self.config.get("valid.metric_expr"),
                 None,
-                dict(config=self.config, **job_trace),
+                dict(config=self.config, **metrics)
             )
+            }
+            run_trace_fn(**metric_entry)
 
         # reset model and return metrics
         if was_training:
             self.model.train()
         self.config.log("Finished evaluating on " + self.eval_split + " split.")
-
-        return job_trace
 
 
     def _densify_chunk_of_labels(

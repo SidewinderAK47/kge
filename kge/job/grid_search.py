@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict
+from typing import Any, Dict, Callable
 
 from kge.job import Job
 from kge import Config
@@ -21,7 +21,7 @@ class GridSearchJob(Job):
             for f in Job.job_created_hooks:
                 f(self)
 
-    def _run(self, job_trace : Dict[str, Any]) -> Dict[str, Any]:
+    def _run(self, run_trace_fn : Callable) -> Any:
         # read grid search options range
         all_keys = []
         all_keys_short = []
@@ -75,4 +75,3 @@ class GridSearchJob(Job):
         else:
             self.config.log("Skipping running of search job as requested by user...")
 
-        return job_trace

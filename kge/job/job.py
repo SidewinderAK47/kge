@@ -143,7 +143,7 @@ class Job:
     def _prepare(self):
         pass
 
-    def run(self) -> Dict[str, Any]:
+    def run(self) -> Any:
         """
         Run the job: first prepare it run some pre run hooks, then execute the job
         and run some post run hooks and return the result.
@@ -163,7 +163,11 @@ class Job:
         for f in self.pre_run_hooks:
             f(self, job_trace)
 
-        job_trace = self._run(job_trace)
+        def run_trace_fn(new_trace_entry : Dict):
+            for k,v in new_trace_entry.items():
+                job_trace[k] = v
+
+        self._run(run_trace_fn)
 
         for f in self.post_run_hooks:
             f(self, job_trace)
@@ -172,7 +176,7 @@ class Job:
 
         return job_trace
 
-    def _run(self, job_trace : Dict[str, Any]) -> Dict[str, Any]:
+    def _run(self, run_trace_fn : Callable) -> Any:
         raise NotImplementedError
 
     def trace(self, **kwargs) -> Dict[str, Any]:
@@ -186,3 +190,4 @@ class Job:
         return self.config.trace(
             job_id=self.job_id, job=self.config.get("job.type"), **kwargs
         )
+

@@ -1,5 +1,5 @@
 import copy
-from typing import Any, Dict
+from typing import Any, Dict, Callable
 
 from kge import Config, Dataset
 from kge.job import SearchJob, Job
@@ -34,7 +34,7 @@ class ManualSearchJob(SearchJob):
             for f in Job.job_created_hooks:
                 f(self)
 
-    def _run(self, job_trace : Dict[str, Any]) -> Dict[str, Any]:
+    def _run(self, run_trace_fn : Callable) -> Any:
         # read search configurations and expand them to full configs
         search_configs = copy.deepcopy(self.config.get("manual_search.configurations"))
         all_keys = set()
@@ -112,8 +112,7 @@ class ManualSearchJob(SearchJob):
         )
         self.config.log("Best overall result:")
 
-        job_trace = dict(
-                **job_trace,
+        run_trace_fn(dict(
                 event="search_completed",
                 echo=True,
                 echo_prefix="  ",
@@ -121,5 +120,4 @@ class ManualSearchJob(SearchJob):
                 scope="search",
                 **overall_best
             )
-
-        return job_trace
+        )

@@ -1,5 +1,5 @@
 import concurrent.futures
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Callable
 import torch
 from kge import Config
 from kge.config import _process_deprecated_options
@@ -91,7 +91,7 @@ class AutoSearchJob(SearchJob):
 
     # -- Main --------------------------------------------------------------------------
 
-    def _run(self, job_trace : Dict[str, Any]) -> Dict[str, Any]:
+    def _run(self, run_trace_fn : Callable) -> Any:
 
         # let's go
         trial_no = 0
@@ -227,8 +227,7 @@ class AutoSearchJob(SearchJob):
                 )
             )
 
-        job_trace = dict(
-                **job_trace,
+        run_trace_fn(dict(
                 event="search_completed",
                 echo=True,
                 echo_prefix="  ",
@@ -236,8 +235,7 @@ class AutoSearchJob(SearchJob):
                 scope="search",
                 **self.results[best_trial_index]
             )
-
-        return job_trace
+        )
 
         # DISABLED FOR NOW SINCE IDENTICAL TO BEST TRIAL
         # output parameter estimates
