@@ -16,7 +16,7 @@ def _trace_job_creation(job: "Job"):
 
     userhome = os.path.expanduser("~")
     username = os.path.split(userhome)[-1]
-    job.trace_entry = job.trace(
+    job.trace(
         git_head=get_git_revision_short_hash(),
         torch_version=torch_version,
         username=username,
